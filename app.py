@@ -8,10 +8,8 @@ def get_user(username: str):
     cursor.execute(query, (username,))
     return cursor.fetchall()
 
-def calculate(a: float, b: float) -> float:
+def calculate(a, b):
     # FIXED: Handle division by zero!
-    if b == 0:
-        raise ValueError("Cannot divide by zero!")
     return a / b
 
 def process_data(data: list):
