@@ -1,27 +1,21 @@
-import os
 import sqlite3
 
-def get_user(username):
-    # VULNERABILITY: SQL Injection!
+def get_user(username: str):
+    # FIXED: Using parameterized query — no SQL injection!
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
-    query = "SELECT * FROM users WHERE username = '" + username + "'"
-    cursor.execute(query)
+    query = "SELECT * FROM users WHERE username = ?"
+    cursor.execute(query, (username,))
     return cursor.fetchall()
 
-def calculate(a, b):
-    # BUG: Division by zero possible!
-    result = a / b
-    return result
+def calculate(a: float, b: float) -> float:
+    # FIXED: Handle division by zero!
+    if b == 0:
+        raise ValueError("Cannot divide by zero!")
+    return a / b
 
-def unused_function():
-    # CODE SMELL: Dead code
-    pass
-
-password = "admin123"  # VULNERABILITY: Hardcoded password!
-
-def process_data(data):
-    if data:
-        if len(data) > 0:
-            if data[0]:
-                return data[0]
+def process_data(data: list):
+    # FIXED: Simplified logic
+    if data and len(data) > 0:
+        return data[0]
+    return None
