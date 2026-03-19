@@ -1,0 +1,54 @@
+name: SonarCloud Code Quality Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  sonar-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1 — Get the code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0            # Full history = better analysis
+
+      # Step 2 — Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # Step 3 — Install test tools
+      - name: Install Dependencies
+        run: |
+          pip install pytest pytest-cov
+
+      # Step 4 — Run tests + generate coverage
+      - name: Run Tests with Coverage
+        run: |
+          pytest test_app.py \
+            --cov=. \
+            --cov-report=xml \
+            --cov-report=term \
+            -v
+          echo "✅ Tests completed!"
+
+      # Step 5 — Run SonarCloud scan
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # auto-provided by GitHub
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # Step 6 — Check Quality Gate result
+      - name: Quality Gate Check
+        uses: SonarSource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
