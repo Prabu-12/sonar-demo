@@ -11,24 +11,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1 — Get the code
+      # Step 1 — Checkout code
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0            # Full history = better analysis
+          fetch-depth: 0
 
       # Step 2 — Setup Python
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      # Step 3 — Install test tools
+      # Step 3 — Install dependencies
       - name: Install Dependencies
         run: |
           pip install pytest pytest-cov
 
-      # Step 4 — Run tests + generate coverage
+      # Step 4 — Run tests with coverage
       - name: Run Tests with Coverage
         run: |
           pytest test_app.py \
@@ -36,19 +36,22 @@ jobs:
             --cov-report=xml \
             --cov-report=term \
             -v
-          echo "✅ Tests completed!"
 
-      # Step 5 — Run SonarCloud scan
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@master
+      # Step 5 — SonarCloud Scan (UPDATED)
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v2
+        with:
+          args: >
+            -Dsonar.projectKey=Prabu-12_sonar-demo
+            -Dsonar.organization=prabu-12
+            -Dsonar.sources=.
+            -Dsonar.python.coverage.reportPaths=coverage.xml
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # auto-provided by GitHub
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # Step 6 — Check Quality Gate result
+      # Step 6 — Quality Gate
       - name: Quality Gate Check
-        uses: SonarSource/sonarqube-quality-gate-action@master
+        uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
